@@ -1,0 +1,41 @@
+services:
+  dsvpn:
+    build: ./
+    container_name: dsvpn-client
+    restart: unless-stopped
+
+    env_file:
+      - dsvpn.env
+
+    environment:
+      DSVPN_KEY: "/run/secrets/dsvpn_key"
+      # Shadow Transmission-only credentials so they don't appear in docker inspect
+      USER: ""
+      PASS: ""
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
+    secrets:
+      - dsvpn_key
+
+    healthcheck:
+      test: ["CMD", "ip", "link", "show", "tun0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    ports:
+      - "9091:9091"
+
+include:
+  - transmission-docker-compose.yml
+
+secrets:
+  dsvpn_key:
+      file: ./dsvpn.key

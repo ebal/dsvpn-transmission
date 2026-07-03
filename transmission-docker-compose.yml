@@ -1,0 +1,26 @@
+services:
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    restart: unless-stopped
+
+    network_mode: "service:dsvpn"
+
+    depends_on:
+      dsvpn:
+        condition: service_healthy
+
+    env_file:
+      - dsvpn.env
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/transmission/rpc"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    volumes:
+      - ./transmission/config:/config
+      - ./transmission/downloads:/downloads
+      - ./transmission/watch:/watch
